@@ -74,9 +74,14 @@ void AAuraPlayerController::BeginPlay()
 
 	// 将输入映射上下文绑定到玩家控制器
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(Subsystem);
-
-	Subsystem->AddMappingContext(AuraContext, 0);
+	// 实际上在BeginPlay或玩家控制器中，我们不会获得有效的子系统，除非我们在本地控制的机器上，这里有一个有效的本地玩家
+	// check(Subsystem);
+	// 这是我们正在考虑多人游戏的一个重要细节。
+	if (Subsystem)
+	{
+		Subsystem->AddMappingContext(AuraContext, 0);
+	}
+	// Subsystem->AddMappingContext(AuraContext, 0);
 
 	// 设置鼠标可见
 	bShowMouseCursor = true;
