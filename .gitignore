@@ -4,9 +4,10 @@ Intermediate
 Saved
 Build
 
-
+.idea
 .vscode
 .vs
+
 *.VC.db
 *.opensdf
 *.opendb
