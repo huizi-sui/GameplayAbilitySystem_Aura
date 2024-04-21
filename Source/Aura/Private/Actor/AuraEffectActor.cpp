@@ -5,6 +5,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
+#include "Components/SphereComponent.h"
 
 AAuraEffectActor::AAuraEffectActor()
 {
@@ -20,11 +21,11 @@ AAuraEffectActor::AAuraEffectActor()
 void AAuraEffectActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
 {
+	
 	// 这相比于下面做的事情更多，除了尝试转换为接口，以判断该Actor是否继承了该接口外，
 	// 还会检查是否在没有继承该接口的情况下还存在能力系统组件。
 	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
