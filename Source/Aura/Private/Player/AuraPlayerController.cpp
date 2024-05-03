@@ -104,20 +104,12 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagReleased(InputTag);
-		}
+		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
 		return;
 	}
-	if (bTargeting)
-	{
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagReleased(InputTag);
-		}
-	}
-	else
+
+	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+	if (!bTargeting && !bShiftKeyDown)
 	{
 		const APawn* ControlledPawn = GetPawn();
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
@@ -144,19 +136,13 @@ void AAuraPlayerController::AbilityInputTagHold(FGameplayTag InputTag)
 	// 按下按键后，如果不是鼠标左键，则能力系统组件做自己的事情
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagHold(InputTag);
-		}
+		if (GetASC()) GetASC()->AbilityInputTagHold(InputTag);
 		return;
 	}
 	// 如果是鼠标左键，则需要判断是想要移动还是释放能力
-	if (bTargeting)
+	if (bTargeting || bShiftKeyDown)
 	{
-		if (GetASC())
-		{
-			GetASC()->AbilityInputTagHold(InputTag);
-		}
+		if (GetASC()) GetASC()->AbilityInputTagHold(InputTag);
 	}
 	else
 	{
@@ -230,6 +216,8 @@ void AAuraPlayerController::SetupInputComponent()
 	
 	// Move被绑定到MoveAction
 	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Started, this,  &AAuraPlayerController::ShiftPressed);
+	AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
 	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHold);
 }
 

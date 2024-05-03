@@ -5,8 +5,11 @@
 #include "CoreMinimal.h"
 #include "Character/AuraCharacterBase.h"
 #include "Interfaction/EnemyInterface.h"
+#include "UI/WidgetController/OverlayWidgetController.h"
 #include "AuraEnemy.generated.h"
 
+
+class UWidgetComponent;
 /**
  * 
  */
@@ -26,7 +29,13 @@ public:
 	/** Combat Interface */
 	virtual int32 GetPlayerLevel() const override;
 	/** End Combat Interface */
-	
+
+	// 创建一个委托，从敌人本身向我们的小部件广播
+	UPROPERTY(BlueprintAssignable)
+	FOnAttributeChangedSignature OnHealthChanged;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnAttributeChangedSignature OnMaxHealthChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -35,4 +44,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class Defaults")
 	int32 Level = 1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UWidgetComponent> HealthBar;
 };
