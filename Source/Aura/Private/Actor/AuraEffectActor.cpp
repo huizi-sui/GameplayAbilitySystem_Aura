@@ -11,11 +11,7 @@ AAuraEffectActor::AAuraEffectActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
 	
-	// 想让这个Actor在蓝图方面真正灵活且易于配置。
-	// 因此如果想添加网格、球体、盒子或者胶囊组件，可以将它们附件到根组件上。
-	// 所以我们创建一个简单的场景组件作为Root组件
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>("SceneRoot"));
-	
 }
 
 void AAuraEffectActor::BeginPlay()
