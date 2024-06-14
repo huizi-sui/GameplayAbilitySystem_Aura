@@ -20,8 +20,8 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 		if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec.Ability))
 		{
 			AbilitySpec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);
+			GiveAbility(AbilitySpec);
 		}
-		GiveAbility(AbilitySpec);
 		// 还有一个函数是，给予能力并激活一次
 		// GiveAbilityAndActivateOnce(AbilitySpec);
 	}

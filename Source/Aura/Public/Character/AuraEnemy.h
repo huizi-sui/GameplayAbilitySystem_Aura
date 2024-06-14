@@ -31,12 +31,26 @@ public:
 	virtual int32 GetPlayerLevel() const override;
 	/** End Combat Interface */
 
+	virtual void Die() override;
+
 	// 创建一个委托，从敌人本身向我们的小部件广播
 	UPROPERTY(BlueprintAssignable)
 	FOnAttributeChangedSignature OnHealthChanged;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAttributeChangedSignature OnMaxHealthChanged;
+
+	void HitReactTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
+
+	// 将其暴露给蓝图
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	bool bHitReacting = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")
+	float BaseWalkSpeed = 250.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+    float LifeSpan = 5.f;
 
 protected:
 	virtual void BeginPlay() override;
