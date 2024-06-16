@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "AuraPlayerController.generated.h"
 
+class UDamageTextComponent;
 class USplineComponent;
 class UAuraInputConfig;
 class UInputMappingContext;
@@ -27,6 +28,13 @@ public:
 	AAuraPlayerController();
 	virtual void PlayerTick(float DeltaTime) override;
 
+	// 制作一个显示伤害数字的函数，一个客户端RPC
+	// 对于服务器控制的角色，它只会在服务器上执行并且服务器控制角色可以看到
+	// 对于客户端控制的角色，它将在服务器上调用，但在客户端上执行，客户会看到它。
+	// 所以无论哪种方式， 这个小部件都会被看到。
+	UFUNCTION(Client, Reliable)
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter);
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
@@ -77,4 +85,7 @@ private:
 	TObjectPtr<USplineComponent> Spline;
 
 	void AutoRun();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UDamageTextComponent> DamageTextComponentClass;
 };

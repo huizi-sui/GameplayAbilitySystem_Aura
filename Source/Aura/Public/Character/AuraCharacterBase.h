@@ -69,6 +69,25 @@ protected:
 
 	void AddCharacterAbilities();
 
+	/* Dissolve Effects  */
+	// 该函数将替换材质，基于下面的材质实例床架一个动态材质实例，每个实例一个，并交换网格和武器上的这些材料
+	void Dissolve();
+
+	// 然后开始一个时间线，该时间线在蓝图上更容易实现。
+	// 更新动态材质实例的参数，两个时间线不共享，需要分别设计
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+	
+	// 一个用于网格，一个用于武器，溶解材质实例
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> DissolveMaterialInstance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
+
 private:
 
 	UPROPERTY(EditAnywhere, Category = "Abilities")

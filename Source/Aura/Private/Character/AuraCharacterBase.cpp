@@ -55,7 +55,8 @@ void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 	
 	// 这样胶囊就不会阻挡其他角色或其他物体通过
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	
+
+	Dissolve();
 }
 
 // Called when the game starts or when spawned
@@ -102,4 +103,23 @@ void AAuraCharacterBase::AddCharacterAbilities()
 
 	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 	AuraASC->AddCharacterAbilities(StartupAbilities);
+}
+
+void AAuraCharacterBase::Dissolve()
+{
+	// 检查溶解材质实例有效
+	if (IsValid(DissolveMaterialInstance))
+	{
+		// 基于该材质实例创建一个新的动态材质实例
+		UMaterialInstanceDynamic* DynamicMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
+		// 设置角色网格，如果网格有多种材质，需要对每种材质执行此操作。这里只有一个材质，因此Index = 0
+		GetMesh()->SetMaterial(0, DynamicMaterialInstance);
+		StartDissolveTimeline(DynamicMaterialInstance);
+	}
+	if (IsValid(WeaponDissolveMaterialInstance))
+	{
+		UMaterialInstanceDynamic* DynamicMaterialInstance = UMaterialInstanceDynamic::Create(WeaponDissolveMaterialInstance, this);
+		Weapon->SetMaterial(0, DynamicMaterialInstance);
+		StartWeaponDissolveTimeline(DynamicMaterialInstance);
+	}
 }

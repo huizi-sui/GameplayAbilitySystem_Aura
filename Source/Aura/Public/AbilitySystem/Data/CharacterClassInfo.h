@@ -43,11 +43,14 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaluts")
 	TSubclassOf<UGameplayEffect> SecondaryAttributes;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Commont Class Defaults")
+	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
 	TSubclassOf<UGameplayEffect> VitalAttributes;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Commont Class Defaults")
+	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
 	TArray<TSubclassOf<UGameplayAbility>> CommonAbilities;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
+	TObjectPtr<UCurveTable> DamageCalculationCoefficients;
 	
 	UFUNCTION()
 	FCharacterClassDefaultInfo GetClassDefaultInfo(ECharacterClass CharacterClass);

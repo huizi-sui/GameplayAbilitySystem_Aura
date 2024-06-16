@@ -10,6 +10,7 @@ UMMC_MaxHealth::UMMC_MaxHealth()
 {
 	// 指定要捕获的属性，且可以访问属性或属性集
 	VigorDef.AttributeToCapture = UAuraAttributeSet::GetVigorAttribute();
+	// 捕获的是游戏效果的施加者还是目标者的
 	VigorDef.AttributeSource = EGameplayEffectAttributeCaptureSource::Target;
 	VigorDef.bSnapshot = false;
 
