@@ -33,7 +33,7 @@ public:
 	// 对于客户端控制的角色，它将在服务器上调用，但在客户端上执行，客户会看到它。
 	// 所以无论哪种方式， 这个小部件都会被看到。
 	UFUNCTION(Client, Reliable)
-	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter);
+	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit);
 	
 protected:
 	virtual void BeginPlay() override;
