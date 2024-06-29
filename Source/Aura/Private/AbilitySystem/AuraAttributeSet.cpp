@@ -187,6 +187,14 @@ void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float D
 		// 现在仍然会在服务器上看到它，因为该函数在服务器上执行，这就是客户端RPC函数的功能。
 		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.SourceCharacter->Controller))
 		{
+			// 这里是玩家是SourceCharacter，对敌人造成伤害
+			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockedHit, bCriticalHit);
+			return;
+		}
+		// 对于敌人来说，其PlayController投射不到AuraPlayerController上，所以不会走if语句
+		if (AAuraPlayerController* PC = Cast<AAuraPlayerController>(Props.TargetCharacter->Controller))
+		{
+			// Z敌人对玩家造成伤害
 			PC->ShowDamageNumber(Damage, Props.TargetCharacter, bBlockedHit, bCriticalHit);
 		}
 	}

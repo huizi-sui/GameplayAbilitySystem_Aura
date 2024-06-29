@@ -25,18 +25,27 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
-	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
-
-	// 只会在服务器上调用die
-	virtual void Die() override;
-
 	// 这将是用来处理角色死亡时所有客户端发生的情况的方法， 多播RPC
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath();
+
+	/** Combat Interface */
+	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+	// 只会在服务器上调用die
+	virtual void Die() override;
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
+	virtual bool IsDead_Implementation() const override;
+	virtual AActor* GetAvatar_Implementation() override;
+	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() override;
+	/** end Combat Interface */
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	TArray<FTaggedMontage> AttackMontages;
 	
 protected:
 	virtual void BeginPlay() override;
-	
+
+	bool bDead = false;
 	
 	// 添加到资产
 	UPROPERTY(EditAnywhere, Category = "Combat")
@@ -45,7 +54,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName WeaponTipSocketName;
 
-	virtual FVector GetCombatSocketLocation() override;
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName LeftHandTipSocketName;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	FName RightHandTipSocketName;
 
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -93,6 +106,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
 
-	UPROPERTY(EditAnywhere, Category = "Abilities")
+	UPROPERTY(EditAnywhere, Category = "Combat")
 	TObjectPtr<UAnimMontage> HitReactMontage;
 };
