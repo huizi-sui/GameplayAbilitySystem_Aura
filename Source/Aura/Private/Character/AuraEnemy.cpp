@@ -156,6 +156,10 @@ void AAuraEnemy::Die()
 {
 	// 对于敌人，设置寿命
 	SetLifeSpan(LifeSpan);
+	if (AuraAIController)
+	{
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
+	}
 	Super::Die();
 }
 
