@@ -72,15 +72,15 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGamepl
 {
 	// 只有三个，所以在这里判断，后面如果很多，可以使用TMap
 	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
-	if (MontageTag.MatchesTag(GameplayTags.Montage_Attack_Weapon) && IsValid(Weapon))
+	if (MontageTag.MatchesTag(GameplayTags.CombatSocket_Weapon) && IsValid(Weapon))
 	{
 		return Weapon->GetSocketLocation(WeaponTipSocketName);
 	}
-	if (MontageTag.MatchesTag(GameplayTags.Montage_Attack_LeftHand))
+	if (MontageTag.MatchesTag(GameplayTags.CombatSocket_LeftHand))
 	{
 		return GetMesh()->GetSocketLocation(LeftHandTipSocketName);
 	}
-	if (MontageTag.MatchesTag(GameplayTags.Montage_Attack_RightHand))
+	if (MontageTag.MatchesTag(GameplayTags.CombatSocket_RightHand))
 	{
 		return GetMesh()->GetSocketLocation(RightHandTipSocketName);
 	}
@@ -100,6 +100,23 @@ AActor* AAuraCharacterBase::GetAvatar_Implementation()
 TArray<FTaggedMontage> AAuraCharacterBase::GetAttackMontages_Implementation()
 {
 	return AttackMontages;
+}
+
+UNiagaraSystem* AAuraCharacterBase::GetBloodEffect_Implementation()
+{
+	return BloodEffect;
+}
+
+FTaggedMontage AAuraCharacterBase::GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag)
+{
+	for (FTaggedMontage& Montage : AttackMontages)
+	{
+		if (Montage.MontageTag == MontageTag)
+		{
+			return Montage;
+		}
+	}
+	return FTaggedMontage();
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()
