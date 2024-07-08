@@ -3,8 +3,6 @@
 
 #include "AbilitySystem/Abilities/AuraSummonAbility.h"
 
-#include "Kismet/KismetSystemLibrary.h"
-
 TArray<FVector> UAuraSummonAbility::GetSpawnLocations()
 {
 	// 1. 获取Actor的前向向量
@@ -17,14 +15,27 @@ TArray<FVector> UAuraSummonAbility::GetSpawnLocations()
 	for (int32 i = 0; i < NumMinions; i++)
 	{
 		const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i, FVector::UpVector);
-		const FVector ChosenSpawnLocation = Location + Direction * FMath::RandRange(MinSpawnDistance, MaxSpawnDistance);
-		SpawnLocations.Add(ChosenSpawnLocation);
-		
-		UKismetSystemLibrary::DrawDebugArrow(GetAvatarActorFromActorInfo(), Location,
-	Location + Direction * MaxSpawnDistance, 4.f, FLinearColor::Green, 3.f);
+		FVector ChosenSpawnLocation = Location + Direction * FMath::RandRange(MinSpawnDistance, MaxSpawnDistance);
 
-		DrawDebugSphere(GetWorld(), ChosenSpawnLocation, 15.f, 12, FColor::Blue, false, 3.f);
+		// 进行线追踪
+		FHitResult Hit;
+		GetWorld()->LineTraceSingleByChannel(
+			Hit,
+			ChosenSpawnLocation + FVector(0.f, 0.f, 400.f),
+			ChosenSpawnLocation - FVector(0.f, 0.f, 400.f),
+			ECC_Visibility);
+		if (Hit.bBlockingHit)
+		{
+			ChosenSpawnLocation = Hit.ImpactPoint;
+		}
+		SpawnLocations.Add(ChosenSpawnLocation);
 	}
 
 	return SpawnLocations;
+}
+
+TSubclassOf<APawn> UAuraSummonAbility::GetRandomMinionClass()
+{
+	const int32 Selection = FMath::RandRange(0, MinionsClasses.Num() - 1);
+	return MinionsClasses[Selection];
 }
