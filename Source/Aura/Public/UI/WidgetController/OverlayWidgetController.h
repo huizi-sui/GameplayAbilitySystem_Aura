@@ -10,6 +10,8 @@
 // 动态多播代表： 1. 想要在蓝图中将事件分配给它们，特别是小部件蓝图
 // 因为有多个蓝图，多个小部件蓝图，所以希望是动态多播的，可能想要绑定到这些委托以便它们可以更新。
 
+struct FAuraAbilityInfo;
+
 USTRUCT(BlueprintType)
 struct FUIWidgetRow : public FTableRowBase
 {
@@ -33,9 +35,12 @@ struct FUIWidgetRow : public FTableRowBase
 };
 
 class UAuraUserWidget;
+class UAuraAbilitySystemComponent;
+class UAbilityInfo;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature, const FAuraAbilityInfo&, Info);
 
 /**
  * 
@@ -68,6 +73,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attribute")
 	FMessageWidgetRowSignature MessageWidgetRowDelegate;
 
+	UPROPERTY(BlueprintAssignable, Category = "GAS|Attribute")
+	FAbilityInfoSignature AbilityInfoDelegate;
+
 protected:
 
 	// 希望能够从小部件控制器的蓝图中设置它
@@ -75,9 +83,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget Data")
 	TObjectPtr<UDataTable> MessageWidgetDataTable;
 
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category = "Widget Data")
+	TObjectPtr<UAbilityInfo> AbilityInfo;
+
 	// 根据标签去数据表中查找任意类型的一行数据
 	template<typename T>
 	T* GetDataRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
+
+	void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent);
 };
 
 template <typename T>

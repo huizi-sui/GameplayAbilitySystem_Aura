@@ -8,6 +8,8 @@
 
 // 声明多播委托，动态是为了在蓝图中实现，而这里我们打算在C++中实现
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /* AssetTags */);
+DECLARE_MULTICAST_DELEGATE_OneParam(FAbilityGiven, UAuraAbilitySystemComponent*);
+DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
 /**
  * 
  */
@@ -21,10 +23,18 @@ public:
 
 	FEffectAssetTags EffectAssetTags;
 
+	FAbilityGiven AbilitiesGivenDelegate;
+	// 一旦我们给出了能力，就将其设为true
+	bool bStartupAbilitiesGiven = false;
+
 	void AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities);
 
 	void AbilityInputTagHold(const FGameplayTag& InputTag);
 	void AbilityInputTagReleased(const FGameplayTag& InputTag);
+	void ForEachAbility(const FForEachAbility& Delegate);
+
+	static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+	static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 	
 protected:
 
@@ -32,4 +42,7 @@ protected:
 	// 使其成为客户端RPC
 	UFUNCTION(Client, Reliable)
 	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle);
+
+	virtual void OnRep_ActivateAbilities() override;
+
 };
