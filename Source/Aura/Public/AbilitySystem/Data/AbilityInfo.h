@@ -19,6 +19,9 @@ struct FAuraAbilityInfo
 	UPROPERTY(BlueprintReadOnly)
 	FGameplayTag InputTag = FGameplayTag();
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly)
+	FGameplayTag CooldownTag = FGameplayTag();
+	
 	// const 意味着运行时不能改变，但是不意味着不能在蓝图中设置
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TObjectPtr<const UTexture2D> Icon = nullptr;
