@@ -79,6 +79,15 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
 		);
 
 	/**
+	 * Meta Attributes
+	 */
+	
+	GameplayTags.Attribute_Meta_IncomingXP = UGameplayTagsManager::Get().AddNativeGameplayTag(
+		FName("Attributes.Meta.IncomingXP"),
+		FString("Incoming XP Meta Attribute")
+	);
+
+	/**
 	 * Input Tags
 	 */
 	GameplayTags.InputTag_LMB = UGameplayTagsManager::Get().AddNativeGameplayTag(

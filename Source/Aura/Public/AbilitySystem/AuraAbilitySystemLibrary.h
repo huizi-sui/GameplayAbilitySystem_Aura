@@ -58,4 +58,7 @@ public:
 	// 判断两个Actor是否是朋友
 	UFUNCTION(BlueprintPure, Category = "AuraAbilitySystemLibrary|GameplayMechanics")
 	static bool IsNotFriend(AActor* FirstActor, AActor* SecondActor);
+
+	// 要访问DA_CharacterInfo，需要游戏模式，也就是只能在服务器端调用，需要World
+	static int32 GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel);
 };
