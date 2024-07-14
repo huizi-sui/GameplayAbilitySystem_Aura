@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "UI/WidgetController/AuraWidgetController.h"
+#include "UI/WidgetController/SpellMenuWidgetController.h"
 #include "AuraHUD.generated.h"
 
 class UAttributeMenuWidgetController;
@@ -26,6 +27,8 @@ public:
 	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WidgetControllerParams);
 
 	UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const FWidgetControllerParams& WidgetControllerParams);
+
+	USpellMenuWidgetController* GetSpellMenuWidgetController(const FWidgetControllerParams& SpellMenuControllerParams);
 
 	void InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
 
@@ -52,4 +55,11 @@ private:
 	// 必须能够从蓝图中进行设置
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
+
+	UPROPERTY()
+	TObjectPtr<USpellMenuWidgetController> SpellMenuWidgetController;
+	
+	// 必须能够从蓝图中进行设置
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<USpellMenuWidgetController> SpellMenuWidgetControllerClass;
 };
