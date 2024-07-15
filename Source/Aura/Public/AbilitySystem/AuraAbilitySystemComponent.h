@@ -10,6 +10,7 @@
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /* AssetTags */);
 DECLARE_MULTICAST_DELEGATE(FAbilityGiven);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FAbilityStatusChanged, const FGameplayTag& /* AbilityTag */, const FGameplayTag& /* StatusTag */, int32 /* AbilityLevel */);
 /**
  * 
  */
@@ -22,8 +23,9 @@ public:
 	void AbilityActorInfoSet();
 
 	FEffectAssetTags EffectAssetTags;
-
 	FAbilityGiven AbilitiesGivenDelegate;
+	FAbilityStatusChanged AbilityStatusChanged;
+	
 	// 一旦我们给出了能力，就将其设为true
 	bool bStartupAbilitiesGiven = false;
 
@@ -39,10 +41,19 @@ public:
 
 	static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
+	FGameplayAbilitySpec* GetSpecFromAbilityTag(const FGameplayTag& AbilityTag);
+
 	void UpgradeAttribute(const FGameplayTag& AttributeTag);
 
 	UFUNCTION(Server, Reliable)
 	void ServerUpgradeAttribute(const FGameplayTag& AttributeTag);
+	
+	void UpdateAbilityStatus(int32 Level);
+
+	UFUNCTION(Server, Reliable)
+	void ServerSpendSpellPoint(const FGameplayTag& AbilityTag);
+
+	bool GetDescriptionsByAbilityTag(const FGameplayTag& AbilityTag, FString& OutDescription, FString& OutNextLevelDescription);
 	
 protected:
 
@@ -52,5 +63,8 @@ protected:
 	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle);
 
 	virtual void OnRep_ActivateAbilities() override;
+
+	UFUNCTION(Client, Reliable)
+	void ClientUpdateAbilityStatus(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag, int32 AbilityLevel);
 
 };

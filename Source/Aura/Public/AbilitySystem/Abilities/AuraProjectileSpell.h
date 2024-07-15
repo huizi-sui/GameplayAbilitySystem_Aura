@@ -25,4 +25,7 @@ protected:
 	// 需要一个类来生成投射子弹
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<AAuraProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 NumProjectiles = 5;
 };

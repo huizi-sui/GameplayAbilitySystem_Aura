@@ -5,9 +5,11 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AuraGameplayTags.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Aura/AuraLogChannels.h"
 #include "Interfaction/PlayerInterface.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
@@ -135,6 +137,23 @@ FGameplayTag UAuraAbilitySystemComponent::GetStatusFromSpec(const FGameplayAbili
 	return FGameplayTag();
 }
 
+FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecFromAbilityTag(const FGameplayTag& AbilityTag)
+{
+	// 先锁定所有的可激活能力
+	FScopedAbilityListLock ActiveScopeLock(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		for (FGameplayTag Tag : AbilitySpec.Ability.Get()->AbilityTags)
+		{
+			if (Tag.MatchesTag(AbilityTag))
+			{
+				return &AbilitySpec;
+			}
+		}
+	}
+	return nullptr;
+}
+
 void UAuraAbilitySystemComponent::UpgradeAttribute(const FGameplayTag& AttributeTag)
 {
 	if (GetAvatarActor()->Implements<UPlayerInterface>())
@@ -145,6 +164,73 @@ void UAuraAbilitySystemComponent::UpgradeAttribute(const FGameplayTag& Attribute
 			// 这些事情都需要服务器来实现。
 			ServerUpgradeAttribute(AttributeTag);
 		}
+	}
+}
+
+void UAuraAbilitySystemComponent::UpdateAbilityStatus(int32 Level)
+{
+	// 获取能力信息，只有服务端存在Game mode，所以只会在服务端调用该函数
+	UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
+	for (const FAuraAbilityInfo& Info : AbilityInfo->AbilityInformation)
+	{
+		if (!Info.AbilityTag.IsValid()) continue;
+		if (Info.LevelRequirement > Level) continue;
+		if (GetSpecFromAbilityTag(Info.AbilityTag) == nullptr)
+		{
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(Info.Ability, 1);
+			// 该能力的状态设为可以被解锁的
+			AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Eligible);
+			GiveAbility(AbilitySpec);
+			// 一旦我们添加了一项能力，并改变了该能力的某些内容，就有一种方法可以强制它立即复制。
+			// 所以如果希望客户端立刻知道，而不是等到下次更新，就调用该方法。
+			MarkAbilitySpecDirty(AbilitySpec);
+			// 这里只会是服务端
+			ClientUpdateAbilityStatus(Info.AbilityTag, FAuraGameplayTags::Get().Abilities_Status_Eligible, 1);
+		}
+	}
+}
+
+bool UAuraAbilitySystemComponent::GetDescriptionsByAbilityTag(const FGameplayTag& AbilityTag, FString& OutDescription, FString& OutNextLevelDescription)
+{
+	if (const FGameplayAbilitySpec* AbilitySpec = GetSpecFromAbilityTag(AbilityTag))
+	{
+		if (UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec->Ability))
+		{
+			OutDescription = AuraAbility->GetDescription(AbilitySpec->Level);
+			OutNextLevelDescription = AuraAbility->GetNextLevelDescription(AbilitySpec->Level + 1);
+			return true;
+		}
+	}
+	const UAbilityInfo* AbilityInfo = UAuraAbilitySystemLibrary::GetAbilityInfo(GetAvatarActor());
+	OutDescription = UAuraGameplayAbility::GetLockedDescription(AbilityInfo->FindAbilityInfoForTag(AbilityTag).LevelRequirement);
+	OutNextLevelDescription = FString();
+	return false;
+}
+
+void UAuraAbilitySystemComponent::ServerSpendSpellPoint_Implementation(const FGameplayTag& AbilityTag)
+{
+	if (FGameplayAbilitySpec* AbilitySpec = GetSpecFromAbilityTag(AbilityTag))
+	{
+		if (GetAvatarActor()->Implements<UPlayerInterface>())
+		{
+			IPlayerInterface::Execute_AddToSpellPoints(GetAvatarActor(), -1);
+		}
+		
+		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+		// 位于可激活能力中，所以状态不可能是Locked
+		FGameplayTag Status = GetStatusFromSpec(*AbilitySpec);
+		if (Status.MatchesTagExact(GameplayTags.Abilities_Status_Eligible))
+		{
+			AbilitySpec->DynamicAbilityTags.RemoveTag(GameplayTags.Abilities_Status_Eligible);
+			AbilitySpec->DynamicAbilityTags.AddTag(GameplayTags.Abilities_Status_Unlocked);
+			Status = GameplayTags.Abilities_Status_Unlocked;
+		}
+		else if (Status.MatchesTagExact(GameplayTags.Abilities_Status_Equipped) || Status.MatchesTagExact(GameplayTags.Abilities_Status_Unlocked))
+		{
+			AbilitySpec->Level += 1;
+		}
+		ClientUpdateAbilityStatus(AbilityTag, Status, AbilitySpec->Level);
+		MarkAbilitySpecDirty(*AbilitySpec);
 	}
 }
 
@@ -174,6 +260,11 @@ void UAuraAbilitySystemComponent::OnRep_ActivateAbilities()
 		bStartupAbilitiesGiven = true;
 		AbilitiesGivenDelegate.Broadcast();
 	}
+}
+
+void UAuraAbilitySystemComponent::ClientUpdateAbilityStatus_Implementation(const FGameplayTag& AbilityTag, const FGameplayTag& StatusTag, int32 AbilityLevel)
+{
+	AbilityStatusChanged.Broadcast(AbilityTag, StatusTag, AbilityLevel);
 }
 
 void UAuraAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* AbilitySystemComponent,
