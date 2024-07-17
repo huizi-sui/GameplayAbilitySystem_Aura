@@ -177,6 +177,8 @@ void AAuraCharacter::InitAbilityActorInfo()
 	AttributeSet = AuraPlayerState->GetAttributeSet();
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 
+	OnAscRegistered.Broadcast(AbilitySystemComponent);
+
 	// 在服务器端，所有的player controller都是有效的
 	// 但是在客户端，只有本地角色的player controller是有效的，其他角色的player controller都是无效的，也没有能力初始化能力系统组件等
 	if (AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController()))

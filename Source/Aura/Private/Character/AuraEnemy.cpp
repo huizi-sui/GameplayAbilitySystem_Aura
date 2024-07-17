@@ -125,6 +125,7 @@ void AAuraEnemy::InitAbilityActorInfo()
 	{
 		InitializeDefaultAttribute();
 	}
+	OnAscRegistered.Broadcast(AbilitySystemComponent);
 }
 
 void AAuraEnemy::InitializeDefaultAttribute() const
@@ -152,7 +153,7 @@ int32 AAuraEnemy::GetPlayerLevel_Implementation() const
 	return Level;
 }
 
-void AAuraEnemy::Die()
+void AAuraEnemy::Die(const FVector& DeathImpulse)
 {
 	// 对于敌人，设置寿命
 	SetLifeSpan(LifeSpan);
@@ -160,6 +161,6 @@ void AAuraEnemy::Die()
 	{
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("Dead"), true);
 	}
-	Super::Die();
+	Super::Die(DeathImpulse);
 }
 
