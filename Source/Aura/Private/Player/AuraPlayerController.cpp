@@ -8,6 +8,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "NavigationPath.h"
 #include "NavigationSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Components/SplineComponent.h"
 #include "Input/AuraInputComponent.h"
@@ -72,30 +73,22 @@ void AAuraPlayerController::AutoRun()
 // 光标跟踪将涉及获取光标下的命中结果
 void AAuraPlayerController::CursorTrace()
 {
-	// 第一个参数是跟踪通道，可以根据可见性通道进行跟踪
-	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
-	if(!CursorHit.bBlockingHit)
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_CursorTrace))
 	{
+		if (LastActor) LastActor->UnHighlightActor();
+		if (ThisActor) ThisActor->UnHighlightActor();
+		LastActor = nullptr;
+		ThisActor = nullptr;
 		return;
 	}
+	
+	// 第一个参数是跟踪通道，可以根据可见性通道进行跟踪
+	GetHitResultUnderCursor(ECC_Visibility, false, CursorHit);
+	if(!CursorHit.bBlockingHit) return;
 
 	LastActor = ThisActor;
-	// 如果转换成功，则是AuraEnemy类型，如果转换失败，返回nullptr
 	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
-
-	/**
-	 * Line trace from cursor. There are several scenarios:
-	 *  A. LastActor is nullptr, and ThisActor is nullptr.
-	 *		- Do nothing
-	 *  B. LastActor is nullptr, and ThisActor is not nullptr.
-	 *		- Highlight ThisActor.
-	 *  C. LastActor is not nullptr, and ThisActor is nullptr.
-	 *		- UnHighlight LastActor
-	 *  D. Both are not nullptr, and LastActor != ThisActor
-	 *		- UnHighlight LastActor && Highlight ThisActor
-	 *	E. Both are not nullptr, and LastActor == ThisActor
-	 *		- Do nothing
-	 */
+	
 	if(ThisActor == LastActor)
 	{
 		return;
@@ -112,15 +105,24 @@ void AAuraPlayerController::CursorTrace()
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		return;
+	}
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		bTargeting = ThisActor ? true : false;
 		bAutoRunning = false;
 	}
+	if (GetASC()) GetASC()->AbilityInputTagPressed(InputTag);
 }
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
+	{
+		return;
+	}
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
@@ -147,6 +149,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
                     bAutoRunning = true;
 				}
 			}
+			if (GetASC() && !GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+			{
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
+			}
 		}
 		FollowTime = 0.f;
 		bTargeting = false;
@@ -155,6 +161,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagHold(FGameplayTag InputTag)
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
+	{
+		return;
+	}
 	// 按下按键后，如果不是鼠标左键，则能力系统组件做自己的事情
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
@@ -245,6 +255,10 @@ void AAuraPlayerController::SetupInputComponent()
 
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 {
+	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		return;
+	}
 	// 首先获取输入操作值, 我们是在二维上移动的
 	// 当我们按下W或S时，InputAxisVector的x将为0，y为1或-1.
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();

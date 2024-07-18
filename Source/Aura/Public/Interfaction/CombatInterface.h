@@ -92,4 +92,10 @@ public:
 
 	virtual FOnASCRegistered GetOnAscRegisteredDelegate() = 0;
 	virtual FOnDeath GetOnDeathDelegate() = 0;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void SetInShockLoop(bool bInLoop);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	USkeletalMeshComponent* GetWeapon();
 };
