@@ -3,6 +3,7 @@
 
 #include "AbilitySystem/Abilities/AuraBeamSpell.h"
 
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -52,5 +53,42 @@ void UAuraBeamSpell::TraceFirstTarget(const FVector& BeamTargetLocation)
 			}
 		}
 	}
+	if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(MouseHitActor))
+	{
+		if (!CombatInterface->GetOnDeathDelegate().IsAlreadyBound(this, &UAuraBeamSpell::PrimaryTargetDied))
+		{
+			CombatInterface->GetOnDeathDelegate().AddDynamic(this, &UAuraBeamSpell::PrimaryTargetDied);
+		}
+	}
+}
 
+void UAuraBeamSpell::StoreAdditionalTargets(TArray<AActor*>& OutAdditionalTargets)
+{
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(GetAvatarActorFromActorInfo());
+	ActorsToIgnore.Add(MouseHitActor);
+	
+	TArray<AActor*> OverlappingActors;
+	UAuraAbilitySystemLibrary::GetLivePlayerWithRadius(
+		GetAvatarActorFromActorInfo(),
+		OverlappingActors,
+		ActorsToIgnore,
+		850,
+		MouseHitLocation);
+
+	const int32 NumAdditionalTargets = FMath::Min(GetAbilityLevel() - 1, MaxNumShockTargets);
+	// 从OverlappingActors得到距离MouseHitLocation最近的NumAdditionalTargets个
+	UAuraAbilitySystemLibrary::GetClosestTargets(NumAdditionalTargets, OverlappingActors,
+		OutAdditionalTargets, MouseHitActor->GetActorLocation());
+
+	for (AActor* Target : OutAdditionalTargets)
+	{
+		if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(Target))
+		{
+			if (!CombatInterface->GetOnDeathDelegate().IsAlreadyBound(this, &UAuraBeamSpell::AdditionalTargetDied))
+			{
+				CombatInterface->GetOnDeathDelegate().AddDynamic(this, &UAuraBeamSpell::AdditionalTargetDied);
+			}
+		}
+	}
 }

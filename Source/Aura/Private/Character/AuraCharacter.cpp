@@ -10,6 +10,8 @@
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
 #include "NiagaraComponent.h"
+#include "AbilitySystem/Data/AbilityInfo.h"
+#include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
 #include "Aura/AuraLogChannels.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -168,6 +170,41 @@ int32 AAuraCharacter::GetPlayerLevel_Implementation() const
 	return AuraPlayerState->GetPlayerLevel();
 }
 
+void AAuraCharacter::OnRep_Stunned()
+{
+	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent))
+	{
+		const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+		FGameplayTagContainer BlockedTags;
+		BlockedTags.AddTag(GameplayTags.Player_Block_CursorTrace);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputPressed);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputHeld);
+		BlockedTags.AddTag(GameplayTags.Player_Block_InputReleased);
+		if (bIsStunned)
+		{
+			AuraASC->AddLooseGameplayTags(BlockedTags);
+			StunDebuffComponent->Activate();
+		}
+		else
+		{
+			AuraASC->RemoveLooseGameplayTags(BlockedTags);
+			StunDebuffComponent->Deactivate();
+		}
+	}
+}
+
+void AAuraCharacter::OnRep_Burned()
+{
+	if (bIsBurned)
+	{
+		BurnDebuffComponent->Activate();
+	}
+	else
+	{
+		BurnDebuffComponent->Deactivate();
+	}
+}
+
 void AAuraCharacter::InitAbilityActorInfo()
 {
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
@@ -178,6 +215,9 @@ void AAuraCharacter::InitAbilityActorInfo()
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->AbilityActorInfoSet();
 
 	OnAscRegistered.Broadcast(AbilitySystemComponent);
+
+	AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Debuff_Stun,
+		EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AAuraCharacter::StunTagChanged);
 
 	// 在服务器端，所有的player controller都是有效的
 	// 但是在客户端，只有本地角色的player controller是有效的，其他角色的player controller都是无效的，也没有能力初始化能力系统组件等

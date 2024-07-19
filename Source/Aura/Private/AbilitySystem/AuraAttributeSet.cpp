@@ -180,10 +180,13 @@ void UAuraAttributeSet::HandleIncomingDamage(const FEffectProperties& Props)
 		else
 		{
 			// 通过能力标签来激活能力，无需关注是谁
-			FGameplayTagContainer TagContainer;
-			TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
-			Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
-
+			if (Props.TargetCharacter->Implements<UCombatInterface>() && !ICombatInterface::Execute_IsBeingShocked(Props.TargetCharacter))
+			{
+				FGameplayTagContainer TagContainer;
+				TagContainer.AddTag(FAuraGameplayTags::Get().Effects_HitReact);
+				Props.TargetASC->TryActivateAbilitiesByTag(TagContainer);
+			}
+			
 			const FVector& KnockBackForce = UAuraAbilitySystemLibrary::GetKnockBackForce(Props.EffectContextHandle);
 			if (!KnockBackForce.IsNearlyZero(1.f))
 			{
@@ -220,12 +223,21 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
 	Effect->DurationPolicy = EGameplayEffectDurationType::HasDuration;
 	Effect->Period = DebuffFrequency;
 	Effect->DurationMagnitude = FScalableFloat(DebuffDuration);
+
+	const FGameplayTag DebuffTag = GameplayTags.DamageTypesToDebuffs[DamageType];
 	
 	UTargetTagsGameplayEffectComponent& AssetTagsComponent = Effect->FindOrAddComponent<UTargetTagsGameplayEffectComponent>();
 	FInheritedTagContainer InheritedTagContainer;
-	InheritedTagContainer.Added.AddTag(GameplayTags.DamageTypesToDebuffs[DamageType]);
-	AssetTagsComponent.SetAndApplyTargetTagChanges(InheritedTagContainer);
+	InheritedTagContainer.Added.AddTag(DebuffTag);
 	// Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.DamageTypesToDebuffs[DamageType]);
+	if (DebuffTag.MatchesTagExact(GameplayTags.Debuff_Stun))
+	{
+		InheritedTagContainer.Added.AddTag(GameplayTags.Player_Block_CursorTrace);
+		InheritedTagContainer.Added.AddTag(GameplayTags.Player_Block_InputPressed);
+		InheritedTagContainer.Added.AddTag(GameplayTags.Player_Block_InputHeld);
+		InheritedTagContainer.Added.AddTag(GameplayTags.Player_Block_InputReleased);
+	}
+	AssetTagsComponent.SetAndApplyTargetTagChanges(InheritedTagContainer);
 	
 	Effect->StackingType = EGameplayEffectStackingType::AggregateBySource;
 	Effect->StackLimitCount = 1;

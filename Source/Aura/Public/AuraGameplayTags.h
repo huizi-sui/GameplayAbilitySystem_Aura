@@ -86,6 +86,13 @@ public:
 	FGameplayTag Abilities_Fire_FireBolt;
 	FGameplayTag Abilities_Lightning_Electrocute;
 
+	// 保护光环
+	FGameplayTag Abilities_Passive_HaloOfProtection;
+	// 生命虹吸
+	FGameplayTag Abilities_Passive_LifeSiphon;
+	// 法力虹吸
+	FGameplayTag Abilities_Passive_ManaSiphon;
+
 	FGameplayTag Cooldown_Fire_FireBolt;
 
 	FGameplayTag CombatSocket_Weapon;

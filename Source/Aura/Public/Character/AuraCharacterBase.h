@@ -24,6 +24,7 @@ class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInte
 
 public:
 	AAuraCharacterBase();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
@@ -44,21 +45,40 @@ public:
 	virtual int32 GetMinionCount_Implementation() override;
 	virtual void IncrementMinionCount_Implementation(int32 Amount) override;
 	virtual ECharacterClass GetCharacterClass_Implementation() override;
-	virtual FOnASCRegistered GetOnAscRegisteredDelegate() override;
-	virtual FOnDeath GetOnDeathDelegate() override;
+	virtual FOnASCRegistered& GetOnAscRegisteredDelegate() override;
+	virtual FOnDeathSignature& GetOnDeathDelegate() override;
 	virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
+	virtual void SetIsBeingShock_Implementation(bool bInShock) override;
+	virtual bool IsBeingShocked_Implementation() const override;
 	/** end Combat Interface */
 
 	FOnASCRegistered OnAscRegistered;
-	FOnDeath OnDeath;
+	FOnDeathSignature OnDeathDelegate;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	TArray<FTaggedMontage> AttackMontages;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Stunned, BlueprintReadOnly)
+	bool bIsStunned = false;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Burned, BlueprintReadOnly)
+	bool bIsBurned = false;
+
+	UPROPERTY(Replicated, BlueprintReadOnly)
+	bool bIsBeingShock = false;
+
+	UFUNCTION()
+	virtual void OnRep_Stunned();
+
+	UFUNCTION()
+	virtual void OnRep_Burned();
 	
 protected:
 	virtual void BeginPlay() override;
 
 	bool bDead = false;
+
+	virtual void StunTagChanged(const FGameplayTag CallbackTag, int32 NewCount);
 	
 	// 添加到资产
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
@@ -76,6 +96,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName TailSocketName;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+	float BaseWalkSpeed = 600.f;
 
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -132,6 +154,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UDebuffNiagaraComponent> StunDebuffComponent;
 	
 private:
 

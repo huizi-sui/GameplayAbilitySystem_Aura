@@ -12,7 +12,8 @@ class UNiagaraSystem;
 class UAbilitySystemComponent;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnASCRegistered, UAbilitySystemComponent*);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeath, AActor*, DeadActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeathSignature, AActor*, DeadActor);
+
 
 USTRUCT(BlueprintType)
 struct FTaggedMontage
@@ -90,12 +91,18 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	ECharacterClass GetCharacterClass();
 
-	virtual FOnASCRegistered GetOnAscRegisteredDelegate() = 0;
-	virtual FOnDeath GetOnDeathDelegate() = 0;
+	virtual FOnASCRegistered& GetOnAscRegisteredDelegate() = 0;
+	virtual FOnDeathSignature& GetOnDeathDelegate() = 0;
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	void SetInShockLoop(bool bInLoop);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	USkeletalMeshComponent* GetWeapon();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	bool IsBeingShocked() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void SetIsBeingShock(bool bInShock);
 };
