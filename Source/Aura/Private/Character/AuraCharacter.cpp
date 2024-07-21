@@ -126,9 +126,7 @@ void AAuraCharacter::AddToPlayerLevel_Implementation(int32 InPlayerLevel)
 	AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
 	AuraPlayerState->AddToLevel(InPlayerLevel);
-
 	
-
 	if (UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
 		AuraASC->UpdateAbilityStatus(AuraPlayerState->GetPlayerLevel());
@@ -161,6 +159,24 @@ int32 AAuraCharacter::GetSpellPoints_Implementation() const
 	const AAuraPlayerState* AuraPlayerState = GetPlayerState<AAuraPlayerState>();
 	check(AuraPlayerState);
 	return AuraPlayerState->GetSpellPoints();
+}
+
+void AAuraCharacter::ShowMagicCircle_Implementation(UMaterialInterface* DecalMaterial)
+{
+	if (AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController()))
+	{
+		AuraPlayerController->ShowMagicCircle(DecalMaterial);
+		AuraPlayerController->SetShowMouseCursor(false);
+	}
+}
+
+void AAuraCharacter::HideMagicCircle_Implementation()
+{
+	if (AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController()))
+    {
+    	AuraPlayerController->HideMagicCircle();
+		AuraPlayerController->SetShowMouseCursor(true);
+    }
 }
 
 int32 AAuraCharacter::GetPlayerLevel_Implementation() const

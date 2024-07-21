@@ -85,6 +85,7 @@ public:
 	
 	FGameplayTag Abilities_Fire_FireBolt;
 	FGameplayTag Abilities_Lightning_Electrocute;
+	FGameplayTag Abilities_Arcane_ArcaneShards;
 
 	// 保护光环
 	FGameplayTag Abilities_Passive_HaloOfProtection;
