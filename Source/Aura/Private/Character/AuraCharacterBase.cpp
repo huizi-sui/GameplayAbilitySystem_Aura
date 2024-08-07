@@ -270,10 +270,11 @@ void AAuraCharacterBase::AddCharacterAbilities() const
 
 void AAuraCharacterBase::Dissolve()
 {
-	// 检查溶解材质实例有效
 	if (IsValid(DissolveMaterialInstance))
 	{
-		// 基于该材质实例创建一个新的动态材质实例
+		// 材质：定义的外观，适合静态使用，不可实时修改
+		// 材质实例：基于材质的轻量化版本，可以修改一些参数，适用于多次复用
+		// 动态材质实例：运行时可修改的材质实例，适合需要实时更新的情况
 		UMaterialInstanceDynamic* DynamicMaterialInstance = UMaterialInstanceDynamic::Create(DissolveMaterialInstance, this);
 		// 设置角色网格，如果网格有多种材质，需要对每种材质执行此操作。这里只有一个材质，因此Index = 0
 		GetMesh()->SetMaterial(0, DynamicMaterialInstance);

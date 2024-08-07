@@ -52,10 +52,12 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 		AuraAbilitySystemComponent->AbilityEquipped.AddUObject(this, &UOverlayWidgetController::OnAbilityEquipped);
 		if (AuraAbilitySystemComponent->bStartupAbilitiesGiven)
 		{
+			// 如果绑定委托前，ASC已经将能力赋予给角色，则直接广播
 			BroadcastAbilityInfo();
 		}
 		else
 		{
+			// 如果绑定委托前，ASC还没有将能力赋予给角色，则绑定委托等待能力赋予即可
 			AuraAbilitySystemComponent->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastAbilityInfo);
 		}
 		

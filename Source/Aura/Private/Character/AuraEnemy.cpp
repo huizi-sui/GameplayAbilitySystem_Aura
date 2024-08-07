@@ -41,19 +41,16 @@ void AAuraEnemy::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 
 	// AI角色由服务器控制，客户看到的任何东西都是复制的结果
-	if (!HasAuthority())
-	{
-		return;
-	}
+	if (!HasAuthority()) return;
+	
 	AuraAIController = Cast<AAuraAIController>(NewController);
 
 	// 运行行为树，首先需要在黑板组件上初始化黑板
 	AuraAIController->GetBlackboardComponent()->InitializeBlackboard(*BehaviorTree->BlackboardAsset);
 	AuraAIController->RunBehaviorTree(BehaviorTree);
+	// 设置BlackBoard的某些初始值
 	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), false);
-	// 远程攻击
 	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), CharacterClass != ECharacterClass::Warrior);
-	
 }
 
 void AAuraEnemy::BeginPlay()
@@ -98,12 +95,10 @@ void AAuraEnemy::BeginPlay()
 
 void AAuraEnemy::HitReactTagChanged(const FGameplayTag CallbackTag, int32 NewCount)
 {
-	// 可以检查这个标签是否第一次添加，或者检查它的计数是否为0，等
 	bHitReacting = NewCount > 0;
 	// 如果被击中了，则停止移动
 	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0.f : BaseWalkSpeed;
-	// 如果被击中了，则设置黑板值
-	// 在服务器端和客户端都调用了该函数，但是AuraAIController仅仅对服务器端有效
+	// 在服务器端和客户端都调用了该函数，但是AuraAIController仅仅对服务器端有效，即AuraAIController并没有设为可复制Actor
 	if (AuraAIController && AuraAIController->GetBlackboardComponent())
 	{
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);

@@ -17,8 +17,7 @@ UWaitCooldownChange* UWaitCooldownChange::WaitForCooldownChange(UAbilitySystemCo
 	}
 
 	// To know when a cooldown has ended (Cooldown Tag has been removed)
-	AbilitySystemComponent->RegisterGameplayTagEvent(
-		InCooldownTag, EGameplayTagEventType::NewOrRemoved).AddUObject(
+	AbilitySystemComponent->RegisterGameplayTagEvent(InCooldownTag, EGameplayTagEventType::NewOrRemoved).AddUObject(
 			WaitCooldownChange,
 			&UWaitCooldownChange::CooldownTagChanged);
 
@@ -33,6 +32,7 @@ UWaitCooldownChange* UWaitCooldownChange::WaitForCooldownChange(UAbilitySystemCo
 void UWaitCooldownChange::EndTask()
 {
 	if (!IsValid(ASC)) return;
+	// 去掉添加的委托
 	ASC->RegisterGameplayTagEvent(CooldownTag, EGameplayTagEventType::NewOrRemoved).RemoveAll(this);
 
 	SetReadyToDestroy();
@@ -41,7 +41,6 @@ void UWaitCooldownChange::EndTask()
 
 void UWaitCooldownChange::CooldownTagChanged(const FGameplayTag InCooldownTag, int32 NewCount)
 {
-	// 有一些代表，希望能够正确转播
 	if (NewCount == 0)
 	{
 		CooldownEnd.Broadcast(0.f);
@@ -59,6 +58,7 @@ void UWaitCooldownChange::OnActiveEffectAdded(UAbilitySystemComponent* TargetASC
 	if (AssetTags.HasTagExact(CooldownTag) || GrantedTags.HasTagExact(CooldownTag))
 	{
 		const FGameplayEffectQuery GameplayEffectQuery = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(CooldownTag.GetSingleTagContainer());
+		// 实际上每个技能只有一个冷却时间，完全可以只使用TimesRemaining[0]
 		TArray<float> TimesRemaining =  ASC->GetActiveEffectsTimeRemaining(GameplayEffectQuery);
 		if (TimesRemaining.Num() > 0)
 		{

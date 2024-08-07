@@ -95,6 +95,7 @@ void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContext
 	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
 	// CharacterClassInfo 仅仅在服务器端有效
 	if (CharacterClassInfo == nullptr) return;
+	
 	// 对于Common Abilities，它们不会根据等级变化，所以Level默认为1即可
 	for (const TSubclassOf<UGameplayAbility> AbilityClass : CharacterClassInfo->CommonAbilities)
 	{

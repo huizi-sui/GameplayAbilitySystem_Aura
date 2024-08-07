@@ -12,7 +12,7 @@ void UBTService_FindNearestPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
 
 	// 可以在这里访问该服务上的内容
 	// 由于服务经常在行为树上使用，且拥有该节点的行为树组件具有它自己的主人，也可以访问该特定节点的参与者和控制器
-	APawn* OwningPawn = AIOwner->GetPawn();
+	const APawn* OwningPawn = AIOwner->GetPawn();
 
 	// 通过角色标签判断。
 	const FName TargetTag = OwningPawn->ActorHasTag(FName("Player")) ? FName("Enemy") : FName("Player");

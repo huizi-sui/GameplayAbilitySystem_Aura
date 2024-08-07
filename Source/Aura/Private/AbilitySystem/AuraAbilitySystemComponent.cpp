@@ -113,7 +113,7 @@ void UAuraAbilitySystemComponent::ForEachAbility(const FForEachAbility& Delegate
 	FScopedAbilityListLock ActiveScopeLock(*this);
 	for (const FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
-		// 如果怕委托没有绑定回调，那么会返回false
+		// 如果委托没有绑定回调，那么会返回false
 		if (!Delegate.ExecuteIfBound(AbilitySpec))
 		{
 			// %hs, 记录函数名
