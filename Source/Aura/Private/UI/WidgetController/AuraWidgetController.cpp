@@ -17,14 +17,6 @@ void UAuraWidgetController::SetWidgetControllerParams(const FWidgetControllerPar
 	AttributeSet = WidgetControllerParams.AttributeSet;
 }
 
-void UAuraWidgetController::BroadcastInitialValues()
-{
-}
-
-void UAuraWidgetController::BindCallbacksToDependencies()
-{
-}
-
 void UAuraWidgetController::BroadcastAbilityInfo()
 {
 	// Get Information about all given abilities, look up their Ability Info, and broadcast it to widgets.

@@ -20,7 +20,9 @@ struct FAuraInputAction
 };
 
 /**
- * 
+ * 将Input Action与Gameplay Tag绑定。
+ * 当用户按下时，使用该Gameplay Tag去可激活的Gameplay Abilities中寻找该按键对应的技能，并激活该技能。
+ * 保证运行时修改。
  */
 UCLASS()
 class AURA_API UAuraInputConfig : public UDataAsset

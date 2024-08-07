@@ -35,8 +35,7 @@ class AURA_API UAttributeInfo : public UDataAsset
 
 public:
 
-	// 接受游戏标签，返回正确信息
-	// 如果blogNotFound == true, 则未找到时将使用日志来记录错误
+	// 接受游戏标签，返回正确信息，如果blogNotFound == true, 则未找到时将使用日志来记录错误
 	FAuraAttributeInfo FindAttributeInfoFormTag(const FGameplayTag& AttributeTag, bool blogNotFound = false) const;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

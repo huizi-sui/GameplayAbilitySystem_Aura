@@ -46,8 +46,10 @@ void AAuraProjectile::BeginPlay()
 
 void AAuraProjectile::OnHit()
 {
+	// 打中物体的声音和特效
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
+	// 发生的射弹特在空中移动时带有的声音
 	if (LoopingSoundComponent)
 	{
 		LoopingSoundComponent->Stop();
@@ -63,8 +65,11 @@ void AAuraProjectile::Destroyed()
 		LoopingSoundComponent->Stop();
 		LoopingSoundComponent->DestroyComponent();
 	}
-	
-	// 如果球体在重叠之前调用了destroy，在这种情况下bHit == false
+
+	// 在Server，会先播放Niagara系统效果和声音，然后Destroy
+	// 在Client上，由于是从Server复制过来，所以存在两种情况
+	// 1. 如果先Overlap，然后Destroy，则播放特效和声音，bHit == true，所以无需调用OnHit
+	// 2. 如果先Destroy，然后Overlap，则bHit == false且无权限，需要播放声音和特效。
 	if (!bHit && !HasAuthority())
 	{
 		// 播放声音并产生游戏效果
@@ -88,17 +93,13 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 {
 	if (!IsValidOverlap(OtherActor)) return;
 	
-	if (!bHit)
-	{
-		// 播放声音并产生游戏效果
-		OnHit();
-	}
-
-	// 在Server，想要销毁射弹
+	if (!bHit) OnHit();
+	
 	if (HasAuthority())
 	{
 		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
+			// TODO： 这里存在Bug，需要处理，在这里会计算KnockBackChance，但是在DamageEffectParams类内的Make函数中不设置会为100%
 			DamageEffectParams.DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
 			if (FMath::RandRange(1, 100) < DamageEffectParams.KnockBackChance)
 			{
@@ -112,6 +113,7 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 			DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
 			UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
 		}
+		// 在Server，打中目标后就销毁射弹
 		Destroy();
 	}
 	else

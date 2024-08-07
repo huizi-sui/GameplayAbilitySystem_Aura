@@ -65,7 +65,9 @@ void AAuraEnemy::BeginPlay()
 	{
 		UAuraAbilitySystemLibrary::GiveStartupAbilities(this, AbilitySystemComponent, CharacterClass);
 	}
-	
+
+	// 对于Enemy的Widget的Widget Controller没有必要创建一个单独的Widget Controller。
+	// Player State是在AAuraEnemy中创建的它是有效的，所以AAuraEnemy中存在Widget所需要的所有数据。
 	if (UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject()))
 	{
 		AuraUserWidget->SetWidgetController(this);
@@ -88,7 +90,7 @@ void AAuraEnemy::BeginPlay()
 		AbilitySystemComponent->RegisterGameplayTagEvent(FAuraGameplayTags::Get().Effects_HitReact, EGameplayTagEventType::NewOrRemoved).AddUObject(
 			this, &AAuraEnemy::HitReactTagChanged
 		);
-		// 简单的在此处广播初始值
+		// 广播初始值
 		OnHealthChanged.Broadcast(AuraAS->GetHealth());
 		OnMaxHealthChanged.Broadcast(AuraAS->GetMaxHealth());
 	}

@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "AuraAbilitySystemComponent.generated.h"
 
-// 声明多播委托，动态是为了在蓝图中实现，而这里我们打算在C++中实现
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /* AssetTags */);
 DECLARE_MULTICAST_DELEGATE(FAbilityGiven);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
@@ -85,9 +84,7 @@ public:
 	static bool AbilityHasSlot(FGameplayAbilitySpec& Spec, const FGameplayTag& Slot);
 	
 protected:
-
-	// Reliable意味着即使丢包也能保证到达客户端
-	// 使其成为客户端RPC
+	
 	UFUNCTION(Client, Reliable)
 	void ClientEffectApplied(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle);
 

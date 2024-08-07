@@ -9,7 +9,6 @@ FAuraAttributeInfo UAttributeInfo::FindAttributeInfoFormTag(const FGameplayTag& 
 {
 	for (const FAuraAttributeInfo& Info : AttributeInformation)
 	{
-		// if (Info.AttributeTag == AttributeTag)
 		if (Info.AttributeTag.MatchesTagExact(AttributeTag))
 		{
 			return Info;

@@ -6,7 +6,6 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "TargetDataUnderMouse.generated.h"
 
-
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMouseTargetDataDSignature, const FGameplayAbilityTargetDataHandle&, DataHandle);
 
 /**
@@ -28,10 +27,16 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FMouseTargetDataDSignature ValidData;
 
+	// UFUNCTION(BlueprintCallable, meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = true))
+	// bool BeginSpawningActor(UGameplayAbility* OwningAbility, TSubclassOf<AActor> Class, AActor*& SpawnedActor);
+	//
+	// UFUNCTION(BlueprintCallable, meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = true))
+	// bool FinishSpawningActor(UGameplayAbility* OwningAbility, AActor* SpawnedActor);
+
 private:
 
 	virtual void Activate() override;
-	void SendMouseCursorData();
+	void SendMouseCursorData() const;
 
 	void OnTargetDataReplicatedCallback(const FGameplayAbilityTargetDataHandle& DataHandle, FGameplayTag ActivationTag);
 };

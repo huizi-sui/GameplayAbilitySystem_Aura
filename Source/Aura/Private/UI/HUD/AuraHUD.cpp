@@ -20,8 +20,7 @@ UOverlayWidgetController* AAuraHUD::GetOverlayWidgetController(const FWidgetCont
 	return OverlayWidgetController;
 }
 
-UAttributeMenuWidgetController* AAuraHUD::GetAttributeMenuWidgetController(
-	const FWidgetControllerParams& WidgetControllerParams)
+UAttributeMenuWidgetController* AAuraHUD::GetAttributeMenuWidgetController(const FWidgetControllerParams& WidgetControllerParams)
 {
 	if (AttributeMenuWidgetController == nullptr)
 	{
@@ -56,7 +55,7 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 	OverlayWidget = Cast<UAuraUserWidget>(Widget);
 	// 创建小部件控制器
 	const FWidgetControllerParams WidgetControllerParams(PC, PS, ASC, AS);
-	UOverlayWidgetController*  WidgetController = GetOverlayWidgetController(WidgetControllerParams);
+	UOverlayWidgetController* WidgetController = GetOverlayWidgetController(WidgetControllerParams);
 	// 设置小部件
 	OverlayWidget->SetWidgetController(WidgetController);
 	// 小部件控制器向小部件广播初始值

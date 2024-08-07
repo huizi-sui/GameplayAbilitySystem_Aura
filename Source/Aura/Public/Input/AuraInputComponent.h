@@ -29,9 +29,7 @@ void UAuraInputComponent::BindAbilityActions(const UAuraInputConfig* InputConfig
 {
 	check(InputConfig);
 
-	// 为什么要将相同的函数绑定到所有输入呢？
-	// 因为有能力传递游戏标签，因此如果将按下、保持和释放三个相同函数绑定到所有输入操作，
-	// 我们可以通过标签识别这些输入，然后将它们传递给能力系统组件，然后决定激活哪些能力。
+	// 所有Input Config中的Input Action绑定到相同的按下、持续按下、释放回调函数，内部根据Gameplay Tag来区分
 	for (const FAuraInputAction& Action : InputConfig->AbilityInputActions)
 	{
 		if (Action.InputAction && Action.InputTag.IsValid())

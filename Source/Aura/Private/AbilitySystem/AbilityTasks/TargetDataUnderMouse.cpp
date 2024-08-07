@@ -14,8 +14,8 @@ UTargetDataUnderMouse* UTargetDataUnderMouse::CreateTargetDataUnderMouse(UGamepl
 
 void UTargetDataUnderMouse::Activate()
 {
-	const bool bIsLocalControlled = Ability->GetCurrentActorInfo()->IsLocallyControlled();
-	if (bIsLocalControlled)
+	// Is Local Controlled
+	if (Ability->GetCurrentActorInfo()->IsLocallyControlled())
 	{
 		SendMouseCursorData();
 	}
@@ -23,7 +23,12 @@ void UTargetDataUnderMouse::Activate()
 	{
 		const FGameplayAbilitySpecHandle SpecHandle = GetAbilitySpecHandle();
 		const FPredictionKey PredictionKey = GetActivationPredictionKey();
-		AbilitySystemComponent.Get()->AbilityTargetDataSetDelegate(SpecHandle, PredictionKey).AddUObject(this, &UTargetDataUnderMouse::OnTargetDataReplicatedCallback);
+		// 向代表绑定委托，以便代表接收到Target Data后，向该委托广播Target Data
+		AbilitySystemComponent.Get()->AbilityTargetDataSetDelegate(SpecHandle, PredictionKey).AddUObject(this,
+			&UTargetDataUnderMouse::OnTargetDataReplicatedCallback);
+		// 如果服务器先调用Activate函数，绑定委托，然后Target Data通过RPC复制的时间，则委托会被广播，无需处理
+		// 如果服务器调用Activate函数时，Target Data已经到达服务器，所以绑定委托前，广播已经发生了，此时需要调用CallReplicatedTargetDataDelegatesIfSet()函数，
+		// 再次强制广播数据，使得各个委托处理Target Data
 		const bool bCalledDelegate = AbilitySystemComponent.Get()->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, PredictionKey);
 		if (!bCalledDelegate)
 		{
@@ -32,7 +37,7 @@ void UTargetDataUnderMouse::Activate()
 	}
 }
 
-void UTargetDataUnderMouse::SendMouseCursorData()
+void UTargetDataUnderMouse::SendMouseCursorData() const
 {
 	// 这个范围内的一切都应该被预测
 	FScopedPredictionWindow ScopedPredictionWindow(AbilitySystemComponent.Get());
@@ -46,12 +51,12 @@ void UTargetDataUnderMouse::SendMouseCursorData()
 	Data->HitResult = CursorHit;
 	DataHandle.Add(Data);
 
-	// 使用一个临时的游戏标签
+	// 将数据发送给Server，若Server接收到数据，则会使用代表获取Target Data并进行广播
 	AbilitySystemComponent->ServerSetReplicatedTargetData(
-		GetAbilitySpecHandle(),
+		GetAbilitySpecHandle(), // Ability Task由Gameplay Ability调用，所以它能够获得Gameplay Ability Spec
 		GetActivationPredictionKey(), // 原先的预测钥匙是与能力的启动相关的。
 		DataHandle,
-		FGameplayTag(),
+		FGameplayTag(), // 使用一个临时的游戏标签
 		AbilitySystemComponent->ScopedPredictionKey);
 
 	// 还应该在本地广播有效数据，以便我们可以看到该光标

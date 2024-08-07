@@ -19,6 +19,10 @@ class UAuraAbilitySystemComponent;
 class UAuraAttributeSet;
 class UAbilityInfo;
 
+/**
+ * 这是Widget Controller需要监听的数据，
+ * 通过这四个类变量，可以从中得到我们想要的任何内容。
+ */
 USTRUCT(BlueprintType)
 struct FWidgetControllerParams
 {
@@ -54,9 +58,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParams(const FWidgetControllerParams& WidgetControllerParams);
 
+	/** 子类实现 */
 	UFUNCTION(BlueprintCallable)
-	virtual void BroadcastInitialValues();
-	virtual void BindCallbacksToDependencies();
+	virtual void BroadcastInitialValues() {};
+	virtual void BindCallbacksToDependencies() {};
+	/** 子类实现 */
 
 	
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attribute")
@@ -81,6 +87,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
 	TObjectPtr<UAttributeSet> AttributeSet;
 
+	/** 将上述四个cast到自定义的 */
+	
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
 	TObjectPtr<AAuraPlayerController> AuraPlayerController;
 

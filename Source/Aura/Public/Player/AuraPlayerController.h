@@ -46,6 +46,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 private:
+
+	/** Enhanced Input Actions and Input Mapping Context Start */
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputMappingContext> AuraContext;
 
@@ -54,7 +56,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> ShiftAction;
-
+	/** Enhanced Input Actions and Input Mapping Context End */
+	
 	void ShiftPressed() { bShiftKeyDown = true; }
 	void ShiftReleased() { bShiftKeyDown = false; }
 	bool bShiftKeyDown = false;
@@ -79,8 +82,11 @@ private:
 
 	UAuraAbilitySystemComponent* GetASC();
 
+	// 移动目的地
 	FVector CachedDestination = FVector::ZeroVector;
+	// 按下持续时间
 	float FollowTime = 0.f;
+	// 短按和长按区分阈值
 	float ShortPressThreshold = 0.5f;
 	bool bAutoRunning = false;
 	bool bTargeting = false;
@@ -105,5 +111,5 @@ private:
 	UPROPERTY()
 	TObjectPtr<AMagicCircle> MagicCircle;
 
-	void UpdateMagicCircleLocation();
+	void UpdateMagicCircleLocation() const;
 };

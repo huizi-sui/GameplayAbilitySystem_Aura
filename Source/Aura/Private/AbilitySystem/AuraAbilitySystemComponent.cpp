@@ -20,16 +20,16 @@ void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf
 {
 	for (const TSubclassOf<UGameplayAbility> AbilityClass : StartupAbilities)
 	{
-		// 授予能力，需要为每个类别船舰一个能力规范
+		// 授予能力，需要为每个类别创建一个能力规范
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
 		if (const UAuraGameplayAbility* AuraAbility = Cast<UAuraGameplayAbility>(AbilitySpec.Ability))
 		{
+			// 为能力绑定输入Tag，与用户按键绑定
 			AbilitySpec.DynamicAbilityTags.AddTag(AuraAbility->StartupInputTag);
+			// 用于UI显示
 			AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 			GiveAbility(AbilitySpec);
 		}
-		// 还有一个函数是，给予能力并激活一次
-		// GiveAbilityAndActivateOnce(AbilitySpec);
 	}
 	bStartupAbilitiesGiven = true;
 	AbilitiesGivenDelegate.Broadcast();
@@ -49,7 +49,7 @@ void UAuraAbilitySystemComponent::AbilityInputTagPressed(const FGameplayTag& Inp
 	if (!InputTag.IsValid()) return;
 
 	FScopedAbilityListLock ActiveScopedLock(*this);
-	for (auto& AbilitySpec : GetActivatableAbilities())
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
@@ -71,7 +71,7 @@ void UAuraAbilitySystemComponent::AbilityInputTagHold(const FGameplayTag& InputT
 
 	FScopedAbilityListLock ActiveScopedLock(*this);
 	// 可激活的能力列表遍历
-	for (auto& AbilitySpec : GetActivatableAbilities())
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
 		{
@@ -92,7 +92,7 @@ void UAuraAbilitySystemComponent::AbilityInputTagReleased(const FGameplayTag& In
 		return;
 	}
 	FScopedAbilityListLock ActiveScopedLock(*this);
-	for (auto& AbilitySpec : GetActivatableAbilities())
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
 	{
 		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag) && AbilitySpec.IsActive())
 		{

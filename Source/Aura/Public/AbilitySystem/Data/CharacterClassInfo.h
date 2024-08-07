@@ -10,6 +10,7 @@
 class UGameplayAbility;
 class UGameplayEffect;
 
+// 游戏中的角色所有类型
 UENUM(BlueprintType)
 enum class ECharacterClass : uint8
 {
@@ -18,12 +19,12 @@ enum class ECharacterClass : uint8
 	Ranger
 };
 
+// 特定于某种类型的角色设置的一些属性，例如主要属性、初始具备的能力，对于Enemy，还存在被击杀奖励玩家的XP
 USTRUCT()
 struct FCharacterClassDefaultInfo
 {
 	GENERATED_BODY()
-
-	// 游戏效果来应用我们的主要属性
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Class Defaults")
 	TSubclassOf<UGameplayEffect> PrimaryAttributes;
 
@@ -35,7 +36,9 @@ struct FCharacterClassDefaultInfo
 };
 
 /**
- * 
+ * 游戏中角色类型的数据资产，存放在GameMode中，GameMode定义游戏规则
+ * 而这个资产中定义角色的很多属性、能力等
+ * GameMode存在Server，在Level加载时创建，不会被复制到Client
  */
 UCLASS()
 class AURA_API UCharacterClassInfo : public UDataAsset
@@ -44,9 +47,11 @@ class AURA_API UCharacterClassInfo : public UDataAsset
 
 public:
 
+	// 对于每种角色，所具备的不同的一些属性或能力等。
 	UPROPERTY(EditDefaultsOnly, Category = "Character Class Default")
 	TMap<ECharacterClass, FCharacterClassDefaultInfo> CharacterClassInformation;
 
+	// 所有角色公用的属性等
 	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
 	TSubclassOf<UGameplayEffect> SecondaryAttributes;
 

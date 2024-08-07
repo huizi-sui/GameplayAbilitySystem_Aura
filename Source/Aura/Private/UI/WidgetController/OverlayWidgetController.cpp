@@ -21,31 +21,27 @@ void UOverlayWidgetController::BroadcastInitialValues()
 void UOverlayWidgetController::BindCallbacksToDependencies()
 {
 	GetAuraPS()->OnXPChangedDelegate.AddUObject(this, &UOverlayWidgetController::OnXPChanged);
-	GetAuraPS()->OnLevelChangedDelegate.AddLambda([this](int32 NewLevel)
+	AuraPlayerState->OnLevelChangedDelegate.AddLambda([this](int32 NewLevel)
 	{
 		OnPlayerLevelChangedDelegate.Broadcast(NewLevel);
 	});
 	
-	// 只要在这里绑定回调，需要一个可以绑定到该委托的回调
-	// 每当我们的属性发生变化时广播
-	// AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetHealthAttribute()) 表示该委托
-	// 当属性改变时，这些函数会被调用
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetAuraAS()->GetHealthAttribute()).AddLambda(
 			[this](const FOnAttributeChangeData& Data)
 			{
 				OnHealthChanged.Broadcast(Data.NewValue);
 			});
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetAuraAS()->GetMaxHealthAttribute()).AddLambda(
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetMaxHealthAttribute()).AddLambda(
 			[this](const FOnAttributeChangeData& Data)
 			{
 				OnMaxHealthChanged.Broadcast(Data.NewValue);
 			});
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetAuraAS()->GetManaAttribute()).AddLambda(
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetManaAttribute()).AddLambda(
 			[this](const FOnAttributeChangeData& Data)
 			{
 				OnManaChanged.Broadcast(Data.NewValue);
 			});
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(GetAuraAS()->GetMaxManaAttribute()).AddLambda(
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetMaxManaAttribute()).AddLambda(
 			[this](const FOnAttributeChangeData& Data)
 			{
 				OnMaxManaChanged.Broadcast(Data.NewValue);
@@ -63,24 +59,18 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 			AuraAbilitySystemComponent->AbilitiesGivenDelegate.AddUObject(this, &UOverlayWidgetController::BroadcastAbilityInfo);
 		}
 		
-		AuraAbilitySystemComponent->EffectAssetTags.AddLambda(
-			[this](const FGameplayTagContainer& AssetsTags)
+		AuraAbilitySystemComponent->EffectAssetTags.AddLambda([this](const FGameplayTagContainer& AssetsTags) {
+			for(const FGameplayTag& Tag : AssetsTags)
 			{
-				for(const FGameplayTag& Tag : AssetsTags)
+				FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");
+				if (Tag.MatchesTag(MessageTag))
 				{
-					// for example, say that Tag = Message.HealthPotion
-					// "Message.HealthPotion".MatchesTag("Message") will return True, "Message".MatchesTag("Message.HealthPotion") will return False
-					// FGameplayTag::MatchesTag()
-					FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag("Message");
-					if (Tag.MatchesTag(MessageTag))
-					{
-						const FUIWidgetRow* Row = GetDataRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
-						// Send this row to UI Widget.
-						MessageWidgetRowDelegate.Broadcast(*Row);
-					}
+					const FUIWidgetRow* Row = GetDataRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
+					// Send this row to UI Widget.
+					MessageWidgetRowDelegate.Broadcast(*Row);
 				}
 			}
-		);
+		});
 	}
 }
 

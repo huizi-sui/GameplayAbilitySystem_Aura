@@ -75,10 +75,8 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, 
 
 void AAuraPlayerController::AutoRun()
 {
-	if (!bAutoRunning)
-	{
-		return;
-	}
+	if (!bAutoRunning) return;
+	
 	if (APawn* ControlledPawn = GetPawn())
 	{
 		// 样条线上最接近受控制的Pawn的位置
@@ -94,7 +92,7 @@ void AAuraPlayerController::AutoRun()
 	}
 }
 
-void AAuraPlayerController::UpdateMagicCircleLocation()
+void AAuraPlayerController::UpdateMagicCircleLocation() const
 {
 	if (IsValid(MagicCircle))
 	{
@@ -138,7 +136,7 @@ void AAuraPlayerController::CursorTrace()
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 {
-	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	if (GetASC() && AuraAbilitySystemComponent->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
 	{
 		return;
 	}
@@ -147,22 +145,22 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 		bTargeting = ThisActor ? true : false;
 		bAutoRunning = false;
 	}
-	if (GetASC()) GetASC()->AbilityInputTagPressed(InputTag);
+	if (GetASC()) AuraAbilitySystemComponent->AbilityInputTagPressed(InputTag);
 }
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
+	if (GetASC() && AuraAbilitySystemComponent->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
 	{
 		return;
 	}
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
-		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+		if (AuraAbilitySystemComponent) AuraAbilitySystemComponent->AbilityInputTagReleased(InputTag);
 		return;
 	}
 
-	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+	if (AuraAbilitySystemComponent) AuraAbilitySystemComponent->AbilityInputTagReleased(InputTag);
 	if (!bTargeting && !bShiftKeyDown)
 	{
 		const APawn* ControlledPawn = GetPawn();
@@ -182,7 +180,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
                     bAutoRunning = true;
 				}
 			}
-			if (GetASC() && !GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+			if (AuraAbilitySystemComponent && !AuraAbilitySystemComponent->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
 			{
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
 			}
@@ -194,34 +192,28 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagHold(FGameplayTag InputTag)
 {
-	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
+	if (GetASC() && AuraAbilitySystemComponent->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
 	{
 		return;
 	}
 	// 按下按键后，如果不是鼠标左键，则能力系统组件做自己的事情
-	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	// 如果是鼠标左键，则需要判断是想要移动还是释放能力，如果是释放能力则无需处理
+	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB) || bTargeting || bShiftKeyDown)
 	{
-		if (GetASC()) GetASC()->AbilityInputTagHold(InputTag);
+		if (AuraAbilitySystemComponent) AuraAbilitySystemComponent->AbilityInputTagHold(InputTag);
 		return;
 	}
-	// 如果是鼠标左键，则需要判断是想要移动还是释放能力
-	if (bTargeting || bShiftKeyDown)
+	
+	FollowTime += GetWorld()->GetDeltaSeconds();
+	if (CursorHit.bBlockingHit)
 	{
-		if (GetASC()) GetASC()->AbilityInputTagHold(InputTag);
+		CachedDestination = CursorHit.ImpactPoint;
 	}
-	else
+	// 获得缓存的目的地后，需要调用添加移动输入
+	if (APawn* ControlledPawn = GetPawn())
 	{
-		FollowTime += GetWorld()->GetDeltaSeconds();
-		if (CursorHit.bBlockingHit)
-		{
-			CachedDestination = CursorHit.ImpactPoint;
-		}
-		// 获得缓存的目的地后，需要调用添加移动输入
-		if (APawn* ControlledPawn = GetPawn())
-		{
-			const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-			ControlledPawn->AddMovementInput(WorldDirection);
-		}
+		const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+		ControlledPawn->AddMovementInput(WorldDirection);
 	}
 }
 
@@ -237,24 +229,15 @@ UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
 void AAuraPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// 添加输入映射上下文
-	// 断言
-	// 该输入映射上下文可能是个有效指针，这需要在蓝图中进行设置。
-	// 如果没有，则是个无效指针。会遇到各种问题，例如输入不起效果。
-	// 使用断言，停止运行。所以强制在玩家控制器上设置输入映射上下文
+	
 	check(AuraContext);
 
 	// 将输入映射上下文绑定到玩家控制器
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 	// 实际上在BeginPlay或玩家控制器中，我们不会获得有效的子系统，除非我们在本地控制的机器上，这里有一个有效的本地玩家
-	// check(Subsystem);
-	// 这是我们正在考虑多人游戏的一个重要细节。
-	if (Subsystem)
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(AuraContext, 0);
 	}
-	// Subsystem->AddMappingContext(AuraContext, 0);
 
 	// 设置鼠标可见
 	bShowMouseCursor = true;
@@ -275,7 +258,6 @@ void AAuraPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 	
-	// 将输入组件转换为增强型输入组件
 	// CastChecked, 如果转换失败，则程序崩溃
 	UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
 	

@@ -34,6 +34,9 @@ public:
 	UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
 	// 这将是用来处理角色死亡时所有客户端发生的情况的方法， 多播RPC
+	// 多播RPC，
+	// 1. 如果在服务器端调用，则会在所有客户端触发该函数
+	// 2. 如果在客户端调用，则只是普通调用
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath(const FVector& DeathImpulse);
 
@@ -112,7 +115,7 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
 
-	virtual void InitAbilityActorInfo();
+	virtual void InitAbilityActorInfo() {};
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, Category = "Attributes")
 	TSubclassOf<UGameplayEffect> DefaultPrimaryAttributes;
@@ -126,10 +129,10 @@ protected:
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const;
 	virtual void InitializeDefaultAttribute() const;
 
-	void AddCharacterAbilities();
+	void AddCharacterAbilities() const;
 
 	/* Dissolve Effects  */
-	// 该函数将替换材质，基于下面的材质实例床架一个动态材质实例，每个实例一个，并交换网格和武器上的这些材料
+	// 该函数将替换材质，基于下面的材质实例创建一个动态材质实例，每个实例一个，并交换网格和武器上的这些材料
 	void Dissolve();
 
 	// 然后开始一个时间线，该时间线在蓝图上更容易实现。

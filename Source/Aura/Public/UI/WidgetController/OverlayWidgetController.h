@@ -6,10 +6,6 @@
 #include "UI/WidgetController/AuraWidgetController.h"
 #include "OverlayWidgetController.generated.h"
 
-// 创建代表来传播这些数值
-// 动态多播代表： 1. 想要在蓝图中将事件分配给它们，特别是小部件蓝图
-// 因为有多个蓝图，多个小部件蓝图，所以希望是动态多播的，可能想要绑定到这些委托以便它们可以更新。
-
 struct FAuraAbilityInfo;
 
 USTRUCT(BlueprintType)
@@ -41,7 +37,6 @@ class UAbilityInfo;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
 
-
 /**
  * 
  */
@@ -56,8 +51,7 @@ public:
 	
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
-
-	// 希望在蓝图中分配它们
+	
 	UPROPERTY(BlueprintAssignable, Category = "GAS|Attribute")
 	FOnAttributeChangedSignature OnHealthChanged;
 

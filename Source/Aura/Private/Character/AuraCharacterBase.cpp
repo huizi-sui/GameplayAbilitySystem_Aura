@@ -33,6 +33,7 @@ AAuraCharacterBase::AAuraCharacterBase()
 	GetMesh()->SetGenerateOverlapEvents(true);
 
 	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>("Weapon");
+	// 将武器附加到骨骼体网格的某个Slot上，且设置不发生碰撞
 	Weapon->SetupAttachment(GetMesh(), FName("WeaponHandSocket"));
 	Weapon->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -239,10 +240,6 @@ FOnDamageSignature& AAuraCharacterBase::GetOnDamageSignature()
 	return OnDamageDelegate;
 }
 
-void AAuraCharacterBase::InitAbilityActorInfo()
-{
-}
-
 void AAuraCharacterBase::ApplyEffectToSelf(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const 
 {
 	check(IsValid(GetAbilitySystemComponent()));
@@ -261,12 +258,10 @@ void AAuraCharacterBase::InitializeDefaultAttribute() const
 	ApplyEffectToSelf(DefaultVitalAttributes, 1.f);
 }
 
-void AAuraCharacterBase::AddCharacterAbilities()
+void AAuraCharacterBase::AddCharacterAbilities() const
 {
-	if (!HasAuthority())
-	{
-		return;
-	}
+	// 游戏能力在服务器上进行授予，然后由ASC自动将其复制到客户端
+	if (!HasAuthority()) return;
 
 	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 	AuraASC->AddCharacterAbilities(StartupAbilities);
