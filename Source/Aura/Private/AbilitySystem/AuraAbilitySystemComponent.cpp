@@ -10,10 +10,44 @@
 #include "Aura/AuraLogChannels.h"
 #include "Interfaction/PlayerInterface.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
+#include "Game/LoadScreenSaveGame.h"
 
 void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 {
 	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &UAuraAbilitySystemComponent::ClientEffectApplied);
+}
+
+void UAuraAbilitySystemComponent::AddCharacterAbilitiesFromSaveData(ULoadScreenSaveGame* SaveData)
+{
+	for (const FSavedAbility& SavedAbility : SaveData->SavedAbilities)
+	{
+		const TSubclassOf<UGameplayAbility> LoadedAbilityClass = SavedAbility.GameplayAbility;
+		
+		FGameplayAbilitySpec LoadedAbilitySpec = FGameplayAbilitySpec(LoadedAbilityClass, SavedAbility.AbilityLevel);
+
+		// 添加对应输入按键的标签，在HUD中显示的状态
+		LoadedAbilitySpec.DynamicAbilityTags.AddTag(SavedAbility.AbilitySlot);
+		LoadedAbilitySpec.DynamicAbilityTags.AddTag(SavedAbility.AbilityStatus);
+		if (SavedAbility.AbilityType == FAuraGameplayTags::Get().Abilities_Type_Offensive)
+		{
+			GiveAbility(LoadedAbilitySpec);
+		}
+		else if (SavedAbility.AbilityType == FAuraGameplayTags::Get().Abilities_Type_Passive)
+		{
+			if (SavedAbility.AbilityStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped))
+			{
+				GiveAbilityAndActivateOnce(LoadedAbilitySpec);
+			}
+			else
+			{
+				GiveAbility(LoadedAbilitySpec);
+			}
+		}
+	}
+
+	bStartupAbilitiesGiven = true;
+	AbilitiesGivenDelegate.Broadcast();
+	
 }
 
 void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)
@@ -40,6 +74,7 @@ void UAuraAbilitySystemComponent::AddCharacterPassiveAbilities(const TArray<TSub
 	for (const TSubclassOf<UGameplayAbility> PassiveAbilityClass : StartupPassiveAbilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(PassiveAbilityClass, 1);
+		AbilitySpec.DynamicAbilityTags.AddTag(FAuraGameplayTags::Get().Abilities_Status_Equipped);
 		GiveAbilityAndActivateOnce(AbilitySpec);
 	}
 }
@@ -331,6 +366,8 @@ void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGamep
 					MulticastActivatePassiveEffect(AbilityTag, true);
 					TryActivateAbility(AbilitySpec->Handle);
 				}
+				AbilitySpec->DynamicAbilityTags.RemoveTag(GetStatusFromSpec(*AbilitySpec));
+				AbilitySpec->DynamicAbilityTags.AddTag(GameplayTags.Abilities_Status_Equipped);
 			}
 			AssignSlotToAbility(*AbilitySpec, Slot);
 			MarkAbilitySpecDirty(*AbilitySpec);

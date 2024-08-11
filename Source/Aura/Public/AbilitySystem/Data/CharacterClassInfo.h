@@ -51,9 +51,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Character Class Default")
 	TMap<ECharacterClass, FCharacterClassDefaultInfo> CharacterClassInformation;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
+	TSubclassOf<UGameplayEffect> PrimaryAttributes_SetByCaller;
+
 	// 所有角色公用的属性等
 	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
 	TSubclassOf<UGameplayEffect> SecondaryAttributes;
+
+	// 专门为Aura设定的无限持续时间的游戏效果，对于Enemy来说，它的主要属性不会改变，所以次要属性是立即效果即可，使用上面的GE
+	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
+	TSubclassOf<UGameplayEffect> SecondaryAttributes_infinite;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Common Class Defaults")
 	TSubclassOf<UGameplayEffect> VitalAttributes;

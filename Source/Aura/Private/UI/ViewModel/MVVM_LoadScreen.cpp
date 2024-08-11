@@ -41,6 +41,7 @@ void UMVVM_LoadScreen::NewSlotButtonPressed(int32 Slot, const FString& EnterName
 	LoadSlots[Slot]->SetMapName(AuraGameMode->DefaultMapName);
 	LoadSlots[Slot]->SetPlayerName(EnterName);
 	LoadSlots[Slot]->SlotStatus = Taken;
+	LoadSlots[Slot]->SetPlayerLevel(1);
 	LoadSlots[Slot]->PlayerStartTag = AuraGameMode->DefaultPlayerStartTag;
 	
 	AuraGameMode->SaveSlotData(LoadSlots[Slot], Slot);
@@ -109,14 +110,15 @@ void UMVVM_LoadScreen::LoadData()
 	{
 		const ULoadScreenSaveGame* SaveObject = AuraGameMode->GetSaveSlotData(LoadSlot.Value->GetLoadSlotName(), LoadSlot.Key);
 
-		const FString PlayerName = SaveObject->PlayerName;
-		const TEnumAsByte<ESaveSlotStatus> SaveSlotStatus = SaveObject->SaveSlotStatus;
-		const FString MapName = SaveObject->MapName;
+		// const FString PlayerName = SaveObject->PlayerName;
+		// const TEnumAsByte<ESaveSlotStatus> SaveSlotStatus = SaveObject->SaveSlotStatus;
+		// const FString MapName = SaveObject->MapName;
 		
-		LoadSlot.Value->SetPlayerName(PlayerName);
-		LoadSlot.Value->SlotStatus = SaveSlotStatus;
-		LoadSlot.Value->SetMapName(MapName);
+		LoadSlot.Value->SetPlayerName(SaveObject->PlayerName);
+		LoadSlot.Value->SlotStatus = SaveObject->SaveSlotStatus;
+		LoadSlot.Value->SetMapName(SaveObject->MapName);
 		LoadSlot.Value->PlayerStartTag = SaveObject->PlayerStartTag;
+		LoadSlot.Value->SetPlayerLevel(SaveObject->PlayerLevel);
 		
 		// 获取到SaveGame的数据后，就可以对加载槽进行初始化
 		LoadSlot.Value->InitializeSlot();

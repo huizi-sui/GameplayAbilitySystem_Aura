@@ -53,6 +53,8 @@ public:
 	virtual void OnRep_Stunned() override;
 	virtual void OnRep_Burned() override;
 
+	void LoadProgress() const;
+	
 private:
 
 	UPROPERTY(VisibleAnywhere)

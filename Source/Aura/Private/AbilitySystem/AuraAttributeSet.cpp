@@ -319,6 +319,8 @@ void UAuraAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute,
 // 由于Incoming Damage是元数据，所以该函数只会在服务器端调用，导致Float Text只会显示在服务器端，不会显示在客户端
 void UAuraAttributeSet::ShowFloatingText(const FEffectProperties& Props, float Damage, bool bBlockedHit, bool bCriticalHit) const 
 {
+	if (!IsValid(Props.SourceCharacter) || !IsValid(Props.TargetCharacter)) return;
+	
 	// 显示伤害数字，在玩家控制器上有一个功能，可以产生这个伤害数字小部件
 	if (Props.SourceCharacter != Props.TargetCharacter)
 	{
