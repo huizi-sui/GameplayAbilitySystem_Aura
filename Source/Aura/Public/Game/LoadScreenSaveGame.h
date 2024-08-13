@@ -102,6 +102,9 @@ public:
 	UPROPERTY()
 	FString MapName = FString("Default Map Name");
 
+	UPROPERTY()
+	FString MapAssetName = FString("Default Map Asset Name");
+
 	// 防止两个Slot使用相同的PlayerName
 	UPROPERTY()
 	FString PlayerName = FString("Default Name");

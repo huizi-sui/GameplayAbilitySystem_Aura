@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "AuraPlayerController.generated.h"
 
+class IHighlightInterface;
 class AMagicCircle;
 class UNiagaraSystem;
 class UDamageTextComponent;
@@ -17,6 +18,13 @@ class UInputAction;
 struct FInputActionValue;
 class IEnemyInterface;
 class UAuraAbilitySystemComponent;
+
+enum class ETargetingStatus : uint8
+{
+	TargetingEnemy,
+	TargetingNotEnemy,
+	NotTargeting
+};
 
 /**
  * 
@@ -43,8 +51,10 @@ public:
 	void ShowDamageNumber(float DamageAmount, ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit);
 	
 protected:
+	
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
+
 private:
 
 	/** Enhanced Input Actions and Input Mapping Context Start */
@@ -62,12 +72,17 @@ private:
 	void ShiftReleased() { bShiftKeyDown = false; }
 	bool bShiftKeyDown = false;
 
+	static void HighlightActor(AActor* InActor);
+	static void UnHighlightActor(AActor* InActor);
+
 	// 回调函数
 	void Move(const FInputActionValue& InputActionValue);
 
 	void CursorTrace();
-	IEnemyInterface* LastActor;
-	IEnemyInterface* ThisActor;
+	UPROPERTY()
+	TObjectPtr<AActor> LastActor;
+	UPROPERTY()
+	TObjectPtr<AActor> ThisActor;
 	FHitResult CursorHit;
 
 	void AbilityInputTagPressed(FGameplayTag InputTag);
@@ -89,7 +104,7 @@ private:
 	// 短按和长按区分阈值
 	float ShortPressThreshold = 0.5f;
 	bool bAutoRunning = false;
-	bool bTargeting = false;
+	ETargetingStatus TargetingStatus = ETargetingStatus::NotTargeting;
 
 	UPROPERTY(EditDefaultsOnly)
 	float AutoRunAcceptanceRadius = 50.f;
